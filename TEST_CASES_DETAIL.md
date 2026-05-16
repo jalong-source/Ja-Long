@@ -1,327 +1,257 @@
-# Test Case Documentation - Hướng Dẫn Kiểm Thử Chi Tiết
+File `test_Baocaocuoiky.py` là bộ kiểm thử tự động cho project quiz tiếng Anh của bạn. Nó dùng thư viện `unittest` của Python để kiểm tra từng phần của chương trình như một đội “robot giám khảo” 🤖📋
 
-## Tổng quan (Overview)
+# Tổng quan các TestClass
 
-File `test_Baocaocuoiky.py` chứa bộ kiểm thử toàn diện cho chương trình Trắc Nghiệm Tiếng Anh.
+## 1. `TestVocabulary`
 
-Sử dụng Python `unittest` framework để kiểm thử các chức năng chính:
-- Database từ vựng
-- Tạo câu hỏi trắc nghiệm
-- Tính toán điểm số
-- Lưu kết quả
-- Xử lý lỗi nhập liệu
+Kiểm tra dữ liệu từ vựng (`VOCABULARY`)
+
+### Những gì class này kiểm tra:
+
+* `VOCABULARY` có tồn tại không
+* Có đúng 20 từ không
+* Mỗi từ có đủ:
+
+  * `english`
+  * `vietnamese`
+* Cấu trúc dữ liệu có đúng format không
+
+### Ví dụ test:
+
+```python
+def test_vocabulary_has_20_words(self):
+    self.assertEqual(len(quiz.VOCABULARY), 20)
+```
+
+👉 Ý nghĩa:
+Nếu database không đủ 20 từ thì test sẽ fail.
 
 ---
 
-## Cách chạy Test
+## 2. `TestMultipleChoice`
 
-### 1. Chạy tất cả các test:
+Kiểm tra logic tạo câu hỏi trắc nghiệm.
+
+### Những gì class này kiểm tra:
+
+* Hàm `get_multiple_choice()` trả về `tuple`
+* Có đúng 4 đáp án
+* Đáp án đúng nằm trong options
+* Không bị trùng đáp án
+
+### Ví dụ:
+
+```python
+options, idx = quiz.get_multiple_choice('Hello', self.english_words)
+```
+
+👉 Kiểm tra:
+
+* `options` có 4 phần tử
+* `'Hello'` nằm trong danh sách
+
+Nếu thiếu đáp án đúng thì quiz sẽ “hack não người chơi” 💀
+
+---
+
+## 3. `TestScoring`
+
+Kiểm tra tính điểm.
+
+### Những gì class này kiểm tra:
+
+* Điểm phần trăm tính đúng
+* Logic quy đổi điểm chính xác
+
+### Ví dụ:
+
+```python
+self.assertEqual(8 * 10, 80)
+```
+
+👉 Nghĩa là:
+8/10 câu đúng → 80%
+
+---
+
+## 4. `TestFileSaving`
+
+Kiểm tra lưu kết quả ra file.
+
+### Những gì class này kiểm tra:
+
+* File có được tạo không
+* Hàm `save_results()` hoạt động đúng
+* Dữ liệu có ghi vào file không
+
+### Ví dụ:
+
+```python
+self.assertTrue(os.path.exists(self.test_file))
+```
+
+👉 Nếu test pass:
+File kết quả đã được tạo thành công.
+
+---
+
+## 5. `TestDisplayResults`
+
+Kiểm tra hiển thị kết quả ra màn hình console.
+
+### Những gì class này kiểm tra:
+
+* Có in `"KẾT QUẢ"` không
+* Output có đúng format không
+
+### Kỹ thuật dùng:
+
+```python
+sys.stdout = StringIO()
+```
+
+Để “hứng” nội dung in ra màn hình rồi kiểm tra.
+
+👉 Giống như đặt cái xô dưới vòi nước console 🚰
+
+---
+
+## 6. `TestDataIntegrity`
+
+Kiểm tra toàn vẹn dữ liệu.
+
+### Những gì class này kiểm tra:
+
+* Không có từ tiếng Anh trùng
+* Không có từ tiếng Việt trùng
+* Không có chuỗi rỗng
+
+### Ví dụ:
+
+```python
+self.assertEqual(len(english), len(set(english)))
+```
+
+👉 Nếu số lượng khác nhau:
+Có từ bị duplicate.
+
+---
+
+## 7. `TestFunctions`
+
+Kiểm tra các hàm chính có tồn tại và callable.
+
+### Những gì class này kiểm tra:
+
+* `get_multiple_choice`
+* `mode_1_vietnamese_to_english`
+* `mode_2_english_to_vietnamese`
+* `save_results`
+* `display_results`
+
+### Ví dụ:
+
+```python
+self.assertTrue(callable(quiz.save_results))
+```
+
+👉 Đảm bảo hàm tồn tại và gọi được.
+
+---
+
+# Hàm `suite()`
+
+```python
+def suite():
+```
+
+Hàm này gom toàn bộ test class lại thành một “mega test bundle” 🎁
+
+```python
+test_suite.addTest(unittest.makeSuite(TestVocabulary))
+```
+
+👉 Nghĩa là:
+Thêm toàn bộ test của class vào suite.
+
+---
+
+# Cách chạy test
+
+## 1. Chạy tất cả test
+
 ```bash
 python test_Baocaocuoiky.py
 ```
 
-### 2. Chạy một test class cụ thể:
-```bash
-python -m unittest test_Baocaocuoiky.TestVocabularyDatabase -v
-```
+Hoặc:
 
-### 3. Chạy một test method cụ thể:
-```bash
-python -m unittest test_Baocaocuoiky.TestVocabularyDatabase.test_vocabulary_has_20_words -v
-```
-
-### 4. Chạy với verbose output:
 ```bash
 python -m unittest test_Baocaocuoiky -v
 ```
 
----
-
-## Chi tiết các Test Class
-
-### 1. TestVocabularyDatabase (7 tests)
-
-**Mục đích**: Kiểm tra tính chính xác của cơ sở dữ liệu từ vựng
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_vocabulary_exists` | Kiểm tra vocabulary dictionary tồn tại | PASS |
-| `test_vocabulary_has_20_words` | Kiểm tra có đúng 20 từ | 20 items |
-| `test_vocabulary_structure` | Kiểm tra cấu trúc mỗi entry | Có 'english' và 'vietnamese' |
-| `test_vocabulary_ids` | Kiểm tra ID từ 1-20 | IDs: 1, 2, ..., 20 |
-| `test_vocabulary_english_words` | Kiểm tra có các từ Anh mẫu | 'Hello', 'Goodbye' có tồn tại |
-| `test_vocabulary_vietnamese_words` | Kiểm tra có các từ Việt mẫu | 'Xin chào', 'Tạm biệt' có tồn tại |
-
-**Ví dụ chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestVocabularyDatabase.test_vocabulary_has_20_words -v
-```
+`-v` = verbose mode
+Hiển thị chi tiết từng test.
 
 ---
 
-### 2. TestMultipleChoice (6 tests)
+## 2. Chạy một TestClass cụ thể
 
-**Mục đích**: Kiểm tra logic tạo câu trắc nghiệm
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_multiple_choice_returns_tuple` | Kiểm tra hàm trả về tuple | Tuple(options, correct_index) |
-| `test_multiple_choice_options_count` | Kiểm tra có đúng 4 lựa chọn | 4 options |
-| `test_multiple_choice_correct_answer_included` | Kiểm tra đáp án đúng có trong danh sách | Correct answer in options |
-| `test_multiple_choice_correct_index_valid` | Kiểm tra index đáp án đúng hợp lệ | Index: 0-3 |
-| `test_multiple_choice_no_duplicates` | Kiểm tra không có lựa chọn trùng | 4 unique options |
-| `test_multiple_choice_with_vietnamese` | Kiểm tra tạo câu hỏi tiếng Việt | 4 unique Vietnamese options |
-
-**Ví dụ chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestMultipleChoice -v
-```
-
----
-
-### 3. TestInputValidation (2 tests)
-
-**Mục đích**: Kiểm tra xử lý đầu vào từ người dùng
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_invalid_then_valid_input` | Kiểm tra xử lý input sai rồi đúng | Chấp nhận input hợp lệ |
-| `test_choice_validation` | Kiểm tra lựa chọn menu 0-3 | Valid choices: 0, 1, 2, 3 |
-
----
-
-### 4. TestResultsCalculation (2 tests)
-
-**Mục đích**: Kiểm tra tính toán điểm số
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_score_ranges` | Kiểm tra điểm số trong phạm vi | Score: 0-10 (mode), 0-20 (total) |
-| `test_percentage_calculation` | Kiểm tra tính toán phần trăm | 8/10 = 80%, 17/20 = 85% |
-
----
-
-### 5. TestFileSaving (4 tests)
-
-**Mục đích**: Kiểm tra lưu kết quả vào file
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_save_results_creates_file` | Kiểm tra file được tạo | File exists |
-| `test_save_results_file_content` | Kiểm tra nội dung file | Có THỜI GIAN, CHỈ TIÊU, Điểm số |
-| `test_save_results_with_wrong_answers` | Kiểm tra lưu câu sai | File chứa câu hỏi, đáp án sai |
-| `test_save_results_append_mode` | Kiểm tra append mode | File size tăng sau mỗi lần lưu |
-
-**Ví dụ chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestFileSaving -v
-```
-
----
-
-### 6. TestDisplayResults (2 tests)
-
-**Mục đích**: Kiểm tra hiển thị kết quả trên màn hình
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_display_results_output` | Kiểm tra output trên console | Có KẾT QUẢ, CHỈ TIÊU 1, CHỈ TIÊU 2 |
-| `test_display_results_with_wrong_answers` | Kiểm tra hiển thị câu sai | Output chứa câu trả lời sai |
-
----
-
-### 7. TestIntegration (2 tests)
-
-**Mục đích**: Kiểm tra tích hợp các module
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_vocabulary_english_to_vietnamese_matching` | Kiểm tra song ánh Anh-Việt | 20 from English = 20 from Vietnamese |
-| `test_multiple_choice_generation_flow` | Kiểm tra flow tạo câu hỏi | Options, correct_index hợp lệ |
-
----
-
-### 8. TestEdgeCases (3 tests)
-
-**Mục đích**: Kiểm tra các trường hợp biên
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_perfect_score` | Kiểm tra điểm tuyệt đối | Score: 20/20, 100% |
-| `test_zero_score` | Kiểm tra điểm không | Score: 0/20, 0% |
-| `test_mixed_score` | Kiểm tra các điểm khác nhau | Scores: 0-10 valid |
-
----
-
-### 9. TestDataIntegrity (3 tests)
-
-**Mục đích**: Kiểm tra toàn vẹn dữ liệu
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_vocabulary_no_empty_strings` | Kiểm tra không có string rỗng | Tất cả từ không rỗng |
-| `test_vocabulary_unique_english_words` | Kiểm tra từ Anh duy nhất | 20 unique English words |
-| `test_vocabulary_unique_vietnamese_words` | Kiểm tra từ Việt duy nhất | 20 unique Vietnamese words |
-
----
-
-### 10. TestScoring (2 tests)
-
-**Mục đích**: Kiểm tra hệ thống tính điểm
-
-| Test | Mô tả | Expected Result |
-|------|-------|-----------------|
-| `test_score_percentage_calculation` | Kiểm tra chuyển đổi % | 5 points = 50%, 10 points = 100% |
-| `test_total_score_calculation` | Kiểm tra tính tổng điểm | 8+9=17, 17*5=85% |
-
----
-
-## Tổng số Test Cases
-
-```
-TestVocabularyDatabase:      7 tests
-TestMultipleChoice:           6 tests
-TestInputValidation:          2 tests
-TestResultsCalculation:       2 tests
-TestFileSaving:               4 tests
-TestDisplayResults:           2 tests
-TestIntegration:              2 tests
-TestEdgeCases:                3 tests
-TestDataIntegrity:            3 tests
-TestScoring:                  2 tests
-────────────────────────────────────
-TỔNG CỘNG:                   33 tests
-```
-
----
-
-## Expected Output Khi Chạy Tất Cả Tests
-
-```
-======================================================================
-ENGLISH VOCABULARY QUIZ - TEST SUITE
-======================================================================
-
-Running all test cases...
-
-test_vocabulary_exists (test_Baocaocuoiky.TestVocabularyDatabase) ... ok
-test_vocabulary_has_20_words (test_Baocaocuoiky.TestVocabularyDatabase) ... ok
-...
-[Tất cả 33 test sẽ được chạy]
-...
-
-======================================================================
-TEST SUMMARY
-======================================================================
-Tests run: 33
-Successes: 33
-Failures: 0
-Errors: 0
-======================================================================
-```
-
----
-
-## Các Test Case Cụ Thể - Ví Dụ Chi Tiết
-
-### Example 1: Test Vocabulary
-```python
-def test_vocabulary_has_20_words(self):
-    """Test that vocabulary contains 20 words"""
-    self.assertEqual(len(self.vocabulary), 20)
-```
-
-**Chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestVocabularyDatabase.test_vocabulary_has_20_words -v
-```
-
-**Output nếu thành công:**
-```
-test_vocabulary_has_20_words (...TestVocabularyDatabase) ... ok
-```
-
----
-
-### Example 2: Test Multiple Choice
-```python
-def test_multiple_choice_options_count(self):
-    """Test that multiple choice returns 4 options"""
-    correct_answer = "Hello"
-    all_items = [v["english"] for v in self.vocabulary.values()]
-    options, correct_index = quiz_program.get_multiple_choice(correct_answer, all_items)
-    self.assertEqual(len(options), 4)
-```
-
-**Chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestMultipleChoice.test_multiple_choice_options_count -v
-```
-
----
-
-### Example 3: Test File Saving
-```python
-def test_save_results_creates_file(self):
-    """Test that save_results creates a file"""
-    test_results = {
-        'mode1_score': 8,
-        'mode1_wrong': [],
-        'mode2_score': 9,
-        'mode2_wrong': []
-    }
-    quiz_program.save_results(test_results, self.test_file)
-    self.assertTrue(os.path.exists(self.test_file))
-```
-
-**Chạy:**
-```bash
-python -m unittest test_Baocaocuoiky.TestFileSaving.test_save_results_creates_file -v
-```
-
----
-
-## Troubleshooting Test Issues
-
-### Issue 1: "ModuleNotFoundError: No module named 'Baocaocuoiky'"
-**Giải pháp**: Đảm bảo file `test_Baocaocuoiky.py` và `Baocaocuoiky.py` cùng thư mục
-
-### Issue 2: "test file not found"
-**Giải pháp**: File test tự động tạo và xóa, không cần lo
-
-### Issue 3: "Test fails with AttributeError"
-**Giải pháp**: Kiểm tra hàm trong `Baocaocuoiky.py` tồn tại và có đúng tên
-
-### Issue 4: File test lại sinh ra sau khi chạy
-**Giải pháp**: Đó là bình thường, file test sẽ được xóa sau khi test kết thúc
-
----
-
-## Coverage Report
-
-Để tạo coverage report:
+### Ví dụ:
 
 ```bash
-pip install coverage
-coverage run -m unittest test_Baocaocuoiky
-coverage report -m
+python -m unittest test_Baocaocuoiky.TestVocabulary -v
 ```
 
----
-
-## Kết luận
-
-Bộ test này kiểm tra:
-- ✅ Toàn vẹn dữ liệu từ vựng
-- ✅ Logic tạo câu trắc nghiệm
-- ✅ Tính toán điểm số chính xác
-- ✅ Lưu và hiển thị kết quả
-- ✅ Xử lý lỗi nhập liệu
-- ✅ Trường hợp biên (edge cases)
-- ✅ Tích hợp module
+👉 Chỉ chạy test liên quan vocabulary.
 
 ---
 
-*Test Suite Version: 1.0*
-*Created: May 16, 2026*
-*For: Ja-Long English Vocabulary Quiz Project*
+## 3. Chạy một test method cụ thể
+
+### Ví dụ:
+
+```bash
+python -m unittest test_Baocaocuoiky.TestVocabulary.test_vocabulary_has_20_words -v
+```
+
+👉 Chỉ chạy đúng 1 test duy nhất.
+
+---
+
+# Expected Output
+
+Nếu mọi thứ OK:
+
+```text
+test_vocabulary_exists ... ok
+test_returns_4_options ... ok
+test_file_created ... ok
+
+Ran 32 tests in 0.12s
+
+OK
+```
+
+Nếu fail:
+
+```text
+FAIL: test_returns_4_options
+AssertionError: 3 != 4
+```
+
+👉 Nghĩa là hàm chỉ trả về 3 đáp án thay vì 4.
+
+---
+
+# Ý nghĩa thực tế của bộ test này
+
+Bộ test giúp:
+
+* Phát hiện bug sớm
+* Kiểm tra sau khi sửa code
+* Đảm bảo không “fix chỗ này vỡ chỗ kia”
+* Tự động kiểm tra thay vì test tay
+
+Nó giống hệ thống báo động laser trong phim trộm két sắt 🎯
+Code vừa lệch logic một chút là còi hú ngay.
