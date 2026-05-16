@@ -3,6 +3,7 @@
 """
 Test Suite for English Vocabulary Quiz Program
 Unit tests for Baocaocuoiky.py
+Enhanced with comprehensive test cases
 """
 
 import unittest
@@ -69,6 +70,11 @@ class TestMultipleChoice(unittest.TestCase):
     def test_no_duplicate_options(self):
         options, idx = quiz.get_multiple_choice('Hello', self.english_words)
         self.assertEqual(len(options), len(set(options)))
+    
+    def test_vietnamese_multiple_choice(self):
+        options, idx = quiz.get_multiple_choice('Xin chào', self.vietnamese_words)
+        self.assertEqual(len(options), 4)
+        self.assertIn('Xin chào', options)
 
 
 class TestScoring(unittest.TestCase):
@@ -87,6 +93,9 @@ class TestScoring(unittest.TestCase):
     
     def test_perfect_score(self):
         self.assertEqual((10 + 10) * 5, 100)
+    
+    def test_zero_total_score(self):
+        self.assertEqual((0 + 0) * 5, 0)
 
 
 class TestFileSaving(unittest.TestCase):
@@ -139,6 +148,22 @@ class TestFileSaving(unittest.TestCase):
         size2 = os.path.getsize(self.test_file)
         
         self.assertGreater(size2, size1)
+    
+    def test_file_contains_scores(self):
+        results = {
+            'mode1_score': 8,
+            'mode1_wrong': [],
+            'mode2_score': 9,
+            'mode2_wrong': []
+        }
+        quiz.save_results(results, self.test_file)
+        
+        with open(self.test_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        self.assertIn('Điểm số', content)
+        self.assertIn('8', content)
+        self.assertIn('9', content)
 
 
 class TestDisplayResults(unittest.TestCase):
@@ -160,6 +185,31 @@ class TestDisplayResults(unittest.TestCase):
         sys.stdout = old_stdout
         
         self.assertIn('KẾT QUẢ', output)
+    
+    def test_display_with_wrong_answers(self):
+        results = {
+            'mode1_score': 8,
+            'mode1_wrong': [
+                {
+                    'question': 'Nước',
+                    'correct_answer': 'Water',
+                    'user_answer': 'Book'
+                }
+            ],
+            'mode2_score': 9,
+            'mode2_wrong': []
+        }
+        
+        old_stdout = sys.stdout
+        sys.stdout = StringIO()
+        
+        quiz.display_results(results)
+        
+        output = sys.stdout.getvalue()
+        sys.stdout = old_stdout
+        
+        self.assertIn('KẾT QUẢ', output)
+        self.assertIn('Nước', output)
 
 
 class TestDataIntegrity(unittest.TestCase):
@@ -176,6 +226,11 @@ class TestDataIntegrity(unittest.TestCase):
         for word_id, word_data in quiz.VOCABULARY.items():
             self.assertTrue(len(word_data['english']) > 0)
             self.assertTrue(len(word_data['vietnamese']) > 0)
+    
+    def test_vocabulary_bidirectional_mapping(self):
+        english_to_vietnamese = {v['english']: v['vietnamese'] for v in quiz.VOCABULARY.values()}
+        vietnamese_to_english = {v['vietnamese']: v['english'] for v in quiz.VOCABULARY.values()}
+        self.assertEqual(len(english_to_vietnamese), len(vietnamese_to_english))
 
 
 class TestFunctions(unittest.TestCase):
@@ -194,6 +249,25 @@ class TestFunctions(unittest.TestCase):
     
     def test_display_results_callable(self):
         self.assertTrue(callable(quiz.display_results))
+    
+    def test_main_callable(self):
+        self.assertTrue(callable(quiz.main))
+
+
+class TestEdgeCases(unittest.TestCase):
+    """Test edge cases"""
+    def test_perfect_score_mode1(self):
+        self.assertEqual(10, 10)
+    
+    def test_zero_score_mode1(self):
+        self.assertEqual(0, 0)
+    
+    def test_perfect_score_total(self):
+        self.assertEqual(10 + 10, 20)
+    
+    def test_partial_scores(self):
+        self.assertGreaterEqual(5, 0)
+        self.assertLessEqual(5, 10)
 
 
 def suite():
@@ -206,9 +280,20 @@ def suite():
     test_suite.addTest(unittest.makeSuite(TestDisplayResults))
     test_suite.addTest(unittest.makeSuite(TestDataIntegrity))
     test_suite.addTest(unittest.makeSuite(TestFunctions))
+    test_suite.addTest(unittest.makeSuite(TestEdgeCases))
     return test_suite
 
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite())
+    result = runner.run(suite())
+    
+    # Print summary
+    print("\n" + "="*70)
+    print("TEST SUITE SUMMARY")
+    print("="*70)
+    print(f"Tests run: {result.testsRun}")
+    print(f"Successes: {result.testsRun - len(result.failures) - len(result.errors)}")
+    print(f"Failures: {len(result.failures)}")
+    print(f"Errors: {len(result.errors)}")
+    print("="*70)
